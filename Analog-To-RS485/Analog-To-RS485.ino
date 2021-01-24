@@ -4,8 +4,8 @@
 //Settings
 #define ADDRESS     1     //The Adress the system reacts to
 #define RS485BAUD   9600  //RS485 Baud
-#define BUFFERD     0     //Sets if the read Data is Bufferd (1 Yes / 0 No)
-#define BUFFERPERC  70    //Sets the "Buffer" Percentage (Value between 1 and 99, 1 slow, 99 fast reaction)
+#define BUFFERD     1     //Sets if the read Data is Bufferd (1 Yes / 0 No)
+#define BUFFERPERC  90    //Sets the "Buffer" Percentage (Value between 1 and 99, 1 slow, 99 fast reaction)
 #define DEBUG       1     //Debug output enabled (1 Yes / 0 No)    
 
 //General hardware related settings. There shoud be no reason to touch this Part
@@ -15,7 +15,7 @@
 #define CALVALUE    8000  //Value representing 1.5 Volts, for calibrating purposes
 #define RESISTOR    120   //OHM for analog input  
 
-#define ADS_SPS     ADS1115_SPEED_8SPS //Sampels per Second Settings for ADC
+#define ADS_SPS     ADS1115_SPEED_475SPS //Sampels per Second Settings for ADC
 
 String addrHex;                //Communication Addr
 String inputRS485Buffer = "";  //Buffer for incomming chars, till a complete Message is read
@@ -51,7 +51,7 @@ void setup() {
   //Print it once if DEBUG == 1
   if(DEBUG == 1){
     delay(1000);
-    Serial2.print(addrHex); 
+    Serial.print(addrHex); 
   }
   
   //Initialise the output array. Im Using a ASCII encoded Format, basicly a Float in its String representation.
@@ -72,7 +72,7 @@ void setup() {
   for(int i = 0; i<ADS_SPS; i++){
     fakt = fakt*2;
   }
-  adSpsTime = 1000/fakt;
+  adSpsTime = 1000/fakt*4;
 
   //Set the Timer to the current Runtime
   timerStart = millis(); 
@@ -137,8 +137,8 @@ void readValuesIntoBuffer(){
   }
 
   for (int i = 0; i<4; i++){
-    float Voltage = rawData[0] / CALVALUE * 1.5; //Multiply by 1.5 since this is the Value used as test reference
-    float AMP = rawData[0]/(RESISTOR*(CALVALUE/1000)) * 1.5;
+    float Voltage = rawData[i] / CALVALUE * 1.5; //Multiply by 1.5 since this is the Value used as test reference
+    float AMP = rawData[i]/(RESISTOR*(CALVALUE/1000)) * 1.5;
     data[i] = buildSignalValue(String(AMP));
     data[i+4] = buildSignalValue(String(Voltage));
   }
