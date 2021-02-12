@@ -13,6 +13,8 @@
 #define RS485Rx     LOW
 #define RS485TxRx   PA1
 #define CALVALUE    8000  //Value representing 1.5 Volts, for calibrating purposes
+#define LIN_A       0.04  //Value representing a in ax+b (Liniarity)
+#define LIN_B       0.17  //Value representing b in ax+b (Zero Point drift)
 #define RESISTOR    120   //OHM for analog input  
 
 #define ADS_SPS     ADS1115_SPEED_860SPS //Sampels per Second Settings for ADC
@@ -154,6 +156,11 @@ void readValuesIntoBuffer() {
   for (int i = 0; i < 4; i++) {
     float Voltage = rawData[i] / CALVALUE * 1.5; //Multiply by 1.5 since this is the Value used as test reference
     float AMP = rawData[i] / (RESISTOR * (CALVALUE / 1000)) * 1.5;
+    //Calibration:
+    float AMP2 = AMP + LIN_B + (LIN_A * (AMP-4)); //calibrating AMP
+    Voltage = Voltage * (AMP2/AMP); //Correcting the Voltage
+    AMP = AMP2;
+    
     data[i] = buildSignalValue(String(AMP));
     data[i + 4] = buildSignalValue(String(Voltage));
   }
